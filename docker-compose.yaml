@@ -1,0 +1,17 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: dbpass
+      MYSQL_DATABASE: hackernews
+
+  adminer:
+    image: adminer
+    ports:
+      - 9090:8080

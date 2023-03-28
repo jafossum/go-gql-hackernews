@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	var link links.Link
 	link.Address = input.Address
 	link.Title = input.Title
-	link.User = user
+	link.UserID = &user.ID
 	linkId := link.Save()
 	graphqlUser := &model.User{
 		ID:   user.ID,
@@ -86,15 +86,15 @@ func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var dbLinks []links.Link
 	dbLinks = links.GetAll()
 	for _, link := range dbLinks {
-		graphqlUser := &model.User{
-			ID:   link.User.ID,
-			Name: link.User.Username,
-		}
+		us := link.User()
 		resultLinks = append(resultLinks, &model.Link{
 			ID:      link.ID,
 			Title:   link.Title,
 			Address: link.Address,
-			User:    graphqlUser,
+			User: &model.User{
+				ID:   us.ID,
+				Name: us.Username,
+			},
 		})
 	}
 	return resultLinks, nil

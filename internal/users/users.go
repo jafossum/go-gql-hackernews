@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"database/sql"
 	database "github.com/jafossum/go-gql-hackernews/internal/pkg/db/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -13,25 +14,25 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func (user *User) Create() {
+func (user *User) Create(ctx context.Context) {
 	stmt, err := database.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	hashedPassword, err := HashPassword(user.Password)
-	_, err = stmt.Exec(user.Username, hashedPassword)
+	_, err = stmt.ExecContext(ctx, user.Username, hashedPassword)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (user *User) Authenticate() bool {
+func (user *User) Authenticate(ctx context.Context) bool {
 	stmt, err := database.Db.Prepare("SELECT Password FROM Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := stmt.QueryRow(user.Username)
+	row := stmt.QueryRowContext(ctx, user.Username)
 
 	var hashedPassword string
 	err = row.Scan(&hashedPassword)
@@ -46,12 +47,12 @@ func (user *User) Authenticate() bool {
 	return CheckPasswordHash(user.Password, hashedPassword)
 }
 
-func GetUserIdByUsername(username string) (int, error) {
+func GetUserIdByUsername(ctx context.Context, username string) (int, error) {
 	stmt, err := database.Db.Prepare("SELECT ID FROM Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := stmt.QueryRow(username)
+	row := stmt.QueryRowContext(ctx, username)
 
 	var id int
 	err = row.Scan(&id)
@@ -64,12 +65,12 @@ func GetUserIdByUsername(username string) (int, error) {
 	return id, nil
 }
 
-func GetUserById(id string) (User, error) {
+func GetUserById(ctx context.Context, id string) (User, error) {
 	stmt, err := database.Db.Prepare("SELECT ID, Username FROM Users WHERE ID = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := stmt.QueryRow(id)
+	row := stmt.QueryRowContext(ctx, id)
 
 	var user User
 	err = row.Scan(&user.ID, &user.Username)

@@ -26,7 +26,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.Address = input.Address
 	link.Title = input.Title
 	link.UserID = &user.ID
-	linkId := link.Save()
+	linkId := link.Save(ctx)
 	graphqlUser := &model.User{
 		ID:   user.ID,
 		Name: user.Username,
@@ -43,7 +43,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	user.Create()
+	user.Create(ctx)
 	token, err := jwt.GenerateToken(user.Username)
 	if err != nil {
 		return "", err
@@ -56,7 +56,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	correct := user.Authenticate()
+	correct := user.Authenticate(ctx)
 	if !correct {
 		return "", &users.WrongUsernameOrPasswordError{}
 	}
@@ -84,9 +84,9 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var resultLinks []*model.Link
 	var dbLinks []links.Link
-	dbLinks = links.GetAll()
+	dbLinks = links.GetAll(ctx)
 	for _, link := range dbLinks {
-		us := link.User()
+		us := link.User(ctx)
 		resultLinks = append(resultLinks, &model.Link{
 			ID:      link.ID,
 			Title:   link.Title,

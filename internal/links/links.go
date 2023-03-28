@@ -1,6 +1,7 @@
 package links
 
 import (
+	"context"
 	database "github.com/jafossum/go-gql-hackernews/internal/pkg/db/mysql"
 	"github.com/jafossum/go-gql-hackernews/internal/users"
 	"log"
@@ -13,20 +14,20 @@ type Link struct {
 	UserID  *string
 }
 
-func (link *Link) User() *users.User {
-	user, err := users.GetUserById(*link.UserID)
+func (link *Link) User(ctx context.Context) *users.User {
+	user, err := users.GetUserById(ctx, *link.UserID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &user
 }
 
-func (link *Link) Save() int64 {
+func (link *Link) Save(ctx context.Context) int64 {
 	stmt, err := database.Db.Prepare("INSERT INTO Links(Title,Address,UserId) VALUES(?,?,?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, err := stmt.Exec(link.Title, link.Address, link.UserID)
+	res, err := stmt.ExecContext(ctx, link.Title, link.Address, link.UserID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func GetAll() []Link {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query()
+	rows, err := stmt.QueryContext(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

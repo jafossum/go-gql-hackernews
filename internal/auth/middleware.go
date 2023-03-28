@@ -35,7 +35,7 @@ func Middleware() func(handler http.Handler) http.Handler {
 
 			// create user and check if user exists in db
 			user := users.User{Username: username}
-			id, err := users.GetUserIdByUsername(username)
+			id, err := users.GetUserIdByUsername(r.Context(), username)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return

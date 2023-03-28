@@ -39,8 +39,8 @@ func (link *Link) Save(ctx context.Context) int64 {
 	return id
 }
 
-func GetAll() []Link {
-	stmt, err := database.Db.Prepare("SELECT L.id, L.title, L.address, L.userID FROM Links L INNER JOIN Users U on L.ID = U.ID")
+func GetAll(ctx context.Context) []Link {
+	stmt, err := database.Db.Prepare("SELECT L.id, L.title, L.address, L.userID FROM Links L INNER JOIN Users U on L.UserID = U.ID")
 	if err != nil {
 		log.Fatal(err)
 	}
